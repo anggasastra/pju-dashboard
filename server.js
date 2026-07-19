@@ -37,4 +37,6 @@ io.on('connection', (socket) => {
 app.use(express.static('public'));
 
 const PORT = process.env.PORT || 3000;
-http.listen(PORT, () => console.log(`Server berjalan di port ${PORT}`));
+http.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server berjalan di port ${PORT}`);
+});
