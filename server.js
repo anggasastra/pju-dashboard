@@ -6,27 +6,30 @@ const io = require('socket.io')(http, {
 });
 const mqtt = require('mqtt');
 
-// --- TAMBAHAN: Global Error Handler ---
-process.on('uncaughtException', (err) => {
-    console.error('!!! CRASH FATAL (Uncaught Exception):', err);
-    process.exit(1);
+// Konfigurasi PORT (Wajib menggunakan process.env.PORT dari Railway)
+const PORT = process.env.PORT || 8080;
+
+// Setup Health Check agar Railway tidak menganggap aplikasi mati
+app.get('/health', (req, res) => {
+    res.status(200).send('OK');
 });
 
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('!!! CRASH FATAL (Unhandled Rejection):', reason);
-    process.exit(1);
-});
-// -------------------------------------
+app.use(express.static('public'));
 
-const client = mqtt.connect('mqtts://USER:PASS@CLUSTER_URL:8883'); 
+// Setup MQTT dengan error handling agar tidak membuat server crash
+const client = mqtt.connect(process.env.MQTT_URL); 
 
 client.on('connect', () => {
     console.log('Terkoneksi ke MQTT Broker');
     client.subscribe('pju/test');
 });
 
+client.on('error', (err) => {
+    console.error('MQTT Error:', err);
+});
+
 client.on('message', (topic, message) => {
-    console.log('MQTT Message:', message.toString());
+    console.log('Data MQTT:', message.toString());
     io.emit('data', message.toString());
 });
 
@@ -34,9 +37,7 @@ io.on('connection', (socket) => {
     console.log('User terhubung ke Web Dashboard');
 });
 
-app.use(express.static('public'));
-
-const PORT = process.env.PORT || 3000;
+// Bind ke 0.0.0.0 dan port yang benar
 http.listen(PORT, '0.0.0.0', () => {
     console.log(`Server berjalan di port ${PORT}`);
 });
