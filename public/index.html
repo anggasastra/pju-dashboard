@@ -1,13 +1,31 @@
 <!DOCTYPE html>
 <html>
 <body>
-  <h1>Data PJU: <span id="status">-</span></h1>
+  <h1>Status PJU: <span id="status">Menunggu data...</span></h1>
+  <p id="koneksi" style="color:gray;">Mencoba konek ke server...</p>
+
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
+
+    socket.on('connect', () => {
+      document.getElementById('koneksi').innerText = "Status: Terhubung ke Server!";
+      document.getElementById('koneksi').style.color = "green";
+    });
+
     socket.on('data', (msg) => {
-      const data = JSON.parse(msg);
-      document.getElementById('status').innerText = data.status;
+      console.log("Data diterima:", msg);
+      try {
+        const data = JSON.parse(msg);
+        document.getElementById('status').innerText = data.status;
+      } catch (e) {
+        console.error("Gagal Parse JSON:", e);
+      }
+    });
+    
+    socket.on('connect_error', (err) => {
+      document.getElementById('koneksi').innerText = "Error: Gagal konek ke Server!";
+      document.getElementById('koneksi').style.color = "red";
     });
   </script>
 </body>
