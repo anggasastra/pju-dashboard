@@ -10,6 +10,7 @@ const client = mqtt.connect('mqtts://USER:PASS@CLUSTER_URL:8883');
 client.on('connect', () => client.subscribe('pju/test'));
 
 client.on('message', (topic, message) => {
+  console.log('--- MQTT DITERIMA ---');
   console.log('Data diterima:', message.toString());
   io.emit('data', message.toString()); // Kirim ke web UI
 });
